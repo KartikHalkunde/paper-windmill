@@ -9,17 +9,17 @@
 <style>
   :root {
     --bg: #ffffff;
-    --surface: #f8fbff;
-    --ink: #183153;
-    --muted: #526b86;
-    --line: #d7e5f4;
-    --accent: #2563eb;
-    --sky: #e8f4ff;
-    --stick: #527ca8;
-    --b1: #3b82f6; --b1d: #1d5fc4;
-    --b2: #7bb9ff; --b2d: #4a8edc;
-    --b3: #2563eb; --b3d: #1749b5;
-    --b4: #a8d8ff; --b4d: #65a8e5;
+    --surface: #f9fcff;
+    --ink: #273c52;
+    --muted: #60778c;
+    --line: #ddeaf3;
+    --accent: #4c789f;
+    --sky: #edf6fb;
+    --stick: #b98a55;
+    --b1: #e2604a; --b1d: #b8432f;
+    --b2: #f2b441; --b2d: #c98d1f;
+    --b3: #3f8fb8; --b3d: #2b6c8f;
+    --b4: #5aa66f; --b4d: #3d8052;
   }
 
   * { box-sizing: border-box; }
@@ -27,7 +27,24 @@
     margin: 0; background: var(--bg); color: var(--ink);
     font: 16px/1.6 Inter, system-ui, sans-serif;
   }
-  main { max-width: 1040px; margin: 0 auto; padding: 40px 16px 64px; }
+  .clouds { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .cloud { position: absolute; left: 110%; width: 116px; height: 30px; border-radius: 50px; background: #dceef8; opacity: .55; animation: cloud-drift 36s linear infinite; }
+  .cloud::before, .cloud::after { content: ""; position: absolute; bottom: 9px; background: inherit; border-radius: 50%; }
+  .cloud::before { width: 54px; height: 45px; left: 18px; }
+  .cloud::after { width: 65px; height: 54px; left: 48px; }
+  .cloud:nth-child(1) { top: 12%; animation-delay: -8s; }
+  .cloud:nth-child(2) { top: 36%; transform: scale(.7); opacity: .4; animation-duration: 45s; animation-delay: -22s; }
+  .cloud:nth-child(3) { top: 63%; transform: scale(.85); opacity: .45; animation-duration: 32s; animation-delay: -15s; }
+  .cloud:nth-child(4) { top: 83%; transform: scale(.65); opacity: .35; animation-duration: 52s; animation-delay: -39s; }
+  @keyframes cloud-drift { to { left: -140px; } }
+  @media (prefers-reduced-motion: reduce) {
+    .cloud { animation: none; }
+    .cloud:nth-child(1) { left: 70%; }
+    .cloud:nth-child(2) { left: 20%; }
+    .cloud:nth-child(3) { left: 55%; }
+    .cloud:nth-child(4) { left: 8%; }
+  }
+  main { position: relative; z-index: 1; max-width: 1040px; margin: 0 auto; padding: 40px 16px 64px; }
   .eyebrow { color: var(--accent); font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 8px; }
   h1 { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: clamp(30px, 5vw, 46px); line-height: 1.1; margin: 0 0 12px; max-width: 18ch; }
   .hero { display: grid; grid-template-columns: 1fr auto; gap: 32px 48px; align-items: end; margin-bottom: 32px; }
@@ -150,6 +167,7 @@
 
   @media print {
     :root { --bg: #fff; --surface: #fff; --ink: #000; --muted: #444; --line: #ccc; }
+    .clouds { display: none; }
     .lab, .toc, .readings-actions, .lede { display: none !important; }
     .report { display: block; border: 0; margin-top: 24px; padding-top: 0; }
     .doc { max-width: none; }
@@ -160,6 +178,7 @@
 </style>
 </head>
 <body>
+<div class="clouds" aria-hidden="true"><span class="cloud"></span><span class="cloud"></span><span class="cloud"></span><span class="cloud"></span></div>
 <main>
   <header class="hero">
     <div>
@@ -197,8 +216,8 @@
             <path d="M0 0 L118 -118 Q46 -88 0 0 Z" fill="var(--b4d)" />
           </g>
         </g></g>
-        <circle r="10" fill="#e8f4ff" stroke="#527ca8" stroke-width="2" />
-        <circle r="3.5" fill="#527ca8" />
+        <circle r="10" fill="#e9e4da" stroke="#8b8172" stroke-width="2" />
+        <circle r="3.5" fill="#8b8172" />
       </svg>
     </div>
 
