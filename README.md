@@ -1,4 +1,8 @@
-# Paper Windmill
+<p align="center">
+  <img src="assets/paper-windmill.svg" alt="Colourful paper windmill" width="240">
+</p>
+
+<h1 align="center">Paper Windmill</h1>
 
 A lightweight, single-page paper windmill project that shows how moving air can become rotational motion. It combines an interactive windmill simulator with an experiment report covering the build, observations, energy conversion, and real-world wind-powered systems.
 
@@ -27,6 +31,7 @@ These values are a teaching model, **not measurements from a physical windmill**
 | File | Purpose |
 | --- | --- |
 | `index.html` | Interactive simulator, chart, report, illustrations, styles, and print layout |
+| `assets/paper-windmill.svg` | Transparent windmill illustration used in this README |
 | `README.md` | Project overview and usage notes |
 
 The interface uses a soft blue palette while keeping the paper windmill's original multicolour blades. Decorative clouds move across the background; reduced-motion preferences stop that animation.
