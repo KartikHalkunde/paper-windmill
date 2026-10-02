@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paper Windmill</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f8fbff;
+    --ink: #183153;
+    --muted: #526b86;
+    --line: #d7e5f4;
+    --accent: #2563eb;
+    --sky: #e8f4ff;
+    --stick: #527ca8;
+    --b1: #3b82f6; --b1d: #1d5fc4;
+    --b2: #7bb9ff; --b2d: #4a8edc;
+    --b3: #2563eb; --b3d: #1749b5;
+    --b4: #a8d8ff; --b4d: #65a8e5;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.6 Inter, system-ui, sans-serif;
+  }
+  main { max-width: 1040px; margin: 0 auto; padding: 40px 16px 64px; }
+  .eyebrow { color: var(--accent); font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 8px; }
+  h1 { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: clamp(30px, 5vw, 46px); line-height: 1.1; margin: 0 0 12px; max-width: 18ch; }
+  .hero { display: grid; grid-template-columns: 1fr auto; gap: 32px 48px; align-items: end; margin-bottom: 32px; }
+  .hero .lede { margin-bottom: 0; }
+  @media (max-width: 760px) { .hero { grid-template-columns: 1fr; } }
+  .team { border-left: 2px solid var(--accent); padding-left: 20px; }
+  .team-label { color: var(--accent); font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 10px; }
+  .members { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, auto); gap: 6px 28px; font-size: 15px; }
+  .members li { margin: 0; }
+  .lede { color: var(--muted); max-width: 60ch; margin: 0 0 32px; }
+  h2 { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 24px; margin: 0 0 12px; }
+
+  .lab {
+    display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px;
+  }
+  @media (max-width: 760px) { .lab { grid-template-columns: 1fr; padding: 16px; } }
+
+  .stage { position: relative; background: var(--sky); border-radius: 12px; overflow: hidden; aspect-ratio: 1 / 1; }
+  .stage svg.mill { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .wind { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+  .readout { display: flex; flex-direction: column; gap: 20px; }
+  .rpm { display: flex; align-items: baseline; gap: 10px; }
+  .rpm-value { font-family: Fraunces, Georgia, serif; font-size: clamp(56px, 9vw, 84px); line-height: 1; font-variant-numeric: tabular-nums; }
+  .rpm-unit { color: var(--muted); font-weight: 600; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .stat span { display: block; color: var(--muted); font-size: 13px; }
+  .stat strong { font-size: 18px; font-variant-numeric: tabular-nums; }
+
+  label.slider-label { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 8px; }
+  label.slider-label output { color: var(--accent); font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; accent-color: var(--accent); height: 28px; cursor: pointer; }
+  .scale { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
+
+  .presets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .presets button {
+    font: inherit; font-size: 14px; text-align: left; cursor: pointer;
+    background: transparent; color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px;
+  }
+  .presets button:hover { border-color: var(--accent); }
+  .presets button[aria-pressed=true] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .presets small { display: block; color: var(--muted); font-size: 12px; }
+
+  .note { color: var(--muted); font-size: 14px; margin: 0; }
+
+  section { margin-top: 48px; }
+  .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .flow span { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-weight: 500; }
+  .flow i { color: var(--muted); font-style: normal; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 520px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; }
+  tr.active td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  tr.active td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+  ul, ol { padding-left: 20px; margin: 0 0 12px; }
+  li { margin-bottom: 4px; }
+  p { margin: 0 0 12px; }
+
+  .btn {
+    font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    background: var(--accent); color: #fff; border: 1px solid var(--accent); border-radius: 10px; padding: 8px 14px;
+  }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); }
+
+  .readings-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 16px; }
+  .readings-head .note { max-width: 56ch; }
+  .readings-actions { display: flex; gap: 8px; }
+  .readings-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 760px) { .readings-grid { grid-template-columns: 1fr; } }
+  .chart { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+  .chart svg { width: 100%; height: auto; display: block; }
+  .chart text { font: 11px Inter, system-ui, sans-serif; fill: var(--muted); }
+  table.compact { min-width: 0; }
+  tr.empty td { color: var(--muted); }
+
+  .report { display: grid; grid-template-columns: 200px 1fr; gap: 40px; margin-top: 64px; border-top: 1px solid var(--line); padding-top: 48px; }
+  .toc { position: sticky; top: 24px; align-self: start; display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+  .toc-title { font-weight: 600; margin-bottom: 8px; }
+  .toc a { color: var(--muted); text-decoration: none; padding: 3px 0 3px 12px; border-left: 2px solid var(--line); }
+  .toc a:hover, .toc a.current { color: var(--ink); border-left-color: var(--accent); }
+  .toc .print { margin-top: 16px; align-self: flex-start; }
+  @media (max-width: 860px) { .report { grid-template-columns: 1fr; } .toc { display: none; } }
+
+  .doc { min-width: 0; max-width: 70ch; }
+  .doc-title { font-size: clamp(20px, 2.6vw, 26px); line-height: 1.3; }
+  .doc section { margin-top: 40px; scroll-margin-top: 24px; }
+  .doc h3 { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 22px; margin: 0 0 12px; display: flex; gap: 12px; align-items: baseline; }
+  .doc h3 span { font-family: Inter, system-ui, sans-serif; font-size: 13px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .doc h4 { font-size: 16px; margin: 24px 0 8px; }
+  .label { font-weight: 600; font-size: 14px; margin: 16px 0 8px; }
+  .table-wrap { margin-bottom: 16px; }
+
+  .chips { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips li { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 14px; }
+
+  .steps { list-style: none; padding: 0; counter-reset: step; }
+  .steps li { counter-increment: step; position: relative; padding: 4px 0 4px 40px; margin-bottom: 6px; }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 3px; width: 26px; height: 26px; border-radius: 50%;
+    background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent);
+    font-size: 13px; font-weight: 600; display: grid; place-items: center;
+  }
+
+  .photos { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0 8px; }
+  .photos figure { margin: 0; }
+  .photos img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 12px; display: block; }
+  .photos figcaption { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+  .callout { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: 12px 16px; margin-top: 16px; font-size: 14px; }
+  .callout .label { margin-top: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  @media print {
+    :root { --bg: #fff; --surface: #fff; --ink: #000; --muted: #444; --line: #ccc; }
+    .lab, .toc, .readings-actions, .lede { display: none !important; }
+    .report { display: block; border: 0; margin-top: 24px; padding-top: 0; }
+    .doc { max-width: none; }
+    .doc section, table, figure { break-inside: avoid; }
+    tr.active td { background: none; box-shadow: none; }
+    main { padding: 0; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">IKS · Experiment 04</p>
+      <h1>From wind to motion: a paper windmill</h1>
+      <p class="lede">Moving air pushes on the blades and turns them, converting the wind's kinetic energy into rotational mechanical energy. Drag the slider to change the wind speed and watch the rotor respond.</p>
+    </div>
+    <aside class="team">
+      <p class="team-label">Experiment by</p>
+      <ul class="members" aria-label="Group members"><li>Govind Nair</li><li>Poorva Jawale</li><li>Kartik Halkunde</li><li>Om Ingale</li><li>Rajvi Joshi</li><li>Pratik Jogdand</li><li>Nidhi Jadhav</li><li>Ayush Jha</li></ul>
+    </aside>
+  </header>
+
+  <div class="lab">
+    <div class="stage">
+      <svg class="wind" id="wind" viewBox="0 0 400 400" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <svg class="mill" viewBox="-170 -150 340 340" role="img" aria-label="Paper pinwheel windmill on a stick">
+        <rect x="-6" y="0" width="12" height="200" rx="4" fill="var(--stick)" />
+        <g id="ghosts"></g>
+        <g id="rotor"><g id="blades">
+          <g transform="rotate(0)">
+            <path d="M0 0 L0 -118 L118 -118 Z" fill="var(--b1)" />
+            <path d="M0 0 L118 -118 Q46 -88 0 0 Z" fill="var(--b1d)" />
+          </g>
+          <g transform="rotate(90)">
+            <path d="M0 0 L0 -118 L118 -118 Z" fill="var(--b2)" />
+            <path d="M0 0 L118 -118 Q46 -88 0 0 Z" fill="var(--b2d)" />
+          </g>
+          <g transform="rotate(180)">
+            <path d="M0 0 L0 -118 L118 -118 Z" fill="var(--b3)" />
+            <path d="M0 0 L118 -118 Q46 -88 0 0 Z" fill="var(--b3d)" />
+          </g>
+          <g transform="rotate(270)">
+            <path d="M0 0 L0 -118 L118 -118 Z" fill="var(--b4)" />
+            <path d="M0 0 L118 -118 Q46 -88 0 0 Z" fill="var(--b4d)" />
+          </g>
+        </g></g>
+        <circle r="10" fill="#e8f4ff" stroke="#527ca8" stroke-width="2" />
+        <circle r="3.5" fill="#527ca8" />
+      </svg>
+    </div>
+
+    <div class="readout">
+      <div>
+        <div class="rpm" aria-live="polite">
+          <span class="rpm-value" id="rpm">0</span>
+          <span class="rpm-unit">RPM</span>
+        </div>
+        <p class="note" id="status">No wind: the windmill remains stationary.</p>
+      </div>
+
+      <div>
+        <label class="slider-label" for="speed">Wind speed <output id="speedOut" for="speed">0.0 m/s</output></label>
+        <input type="range" id="speed" min="0" max="8" step="0.1" value="0">
+        <div class="scale"><span>0 m/s</span><span>4</span><span>8 m/s</span></div>
+      </div>
+
+      <div class="presets" role="group" aria-label="Test conditions from the experiment">
+        <button data-v="0">No wind<small>Test 1</small></button>
+        <button data-v="2">Natural breeze<small>Test 2 · low</small></button>
+        <button data-v="4.5">Fan, medium<small>Test 3</small></button>
+        <button data-v="7.5">Fan, high<small>Test 4</small></button>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><span>Wind level</span><strong id="level">Zero</strong></div>
+        <div class="stat"><span>Blade tip speed</span><strong id="tip">0.0 m/s</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="readings" id="readings">
+    <div class="readings-head">
+      <div>
+        <h2>Your readings</h2>
+        <p class="note">Set a wind speed, wait for the rotor to settle, then record the reading. Recorded points are plotted on the windmill's speed curve.</p>
+      </div>
+      <div class="readings-actions">
+        <button class="btn" id="record">Record reading</button>
+        <button class="btn ghost" id="clear">Clear</button>
+      </div>
+    </div>
+    <div class="readings-grid">
+
+      <figure class="chart">
+        <svg id="chart" viewBox="0 0 420 260" role="img" aria-label="Graph of windmill RPM against wind speed"></svg>
+      </figure>
+      <div class="table-wrap">
+        <table class="compact">
+          <thead><tr><th>#</th><th>Wind speed</th><th>Level</th><th>RPM</th></tr></thead>
+          <tbody id="readingRows"><tr class="empty"><td colspan="4">No readings yet.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="report" id="report">
+    <nav class="toc" aria-label="Report sections">
+      <p class="toc-title">Report</p>
+      <a href="#aim">Aim</a>
+      <a href="#intro">Introduction</a>
+      <a href="#materials">Materials</a>
+      <a href="#procedure">Procedure</a>
+      <a href="#observation">Observation table</a>
+      <a href="#result">Result</a>
+      <a href="#principle">Principle</a>
+      <a href="#working">Working</a>
+      <a href="#observations">Observations</a>
+      <a href="#analysis">Analysis</a>
+
+      <a href="#links">Traditional &amp; modern</a>
+      <a href="#pros">Advantages &amp; limitations</a>
+      <a href="#applications">Applications</a>
+      <a href="#precautions">Precautions</a>
+      <a href="#conclusion">Conclusion</a>
+      <button class="btn ghost print" onclick="window.print()">Print report</button>
+    </nav>
+
+    <article class="doc">
+      <header>
+        <p class="eyebrow">Experiment report</p>
+        <h2 class="doc-title">Construct a small paper or cardboard windmill, test its rotation under natural wind or fan airflow at different speeds, and document how blade movement demonstrates the conversion of wind energy into mechanical motion</h2>
+        <p class="note">Linking the model to traditional wind-powered systems and modern turbines.</p>
+      </header>
+
+      <section id="aim">
+        <h3><span>01</span>Aim</h3>
+        <p>To construct a small paper or cardboard windmill, observe its rotation under different wind speeds, and understand how wind energy is converted into mechanical motion.</p>
+      </section>
+
+      <section id="intro">
+        <h3><span>02</span>Introduction</h3>
+        <p>Wind is a renewable and clean source of energy. For centuries, humans have used wind to do useful work such as grinding grain, pumping water and sailing boats. Today the same principle is used in modern wind turbines to generate electricity.</p>
+        <p>A windmill works because moving air exerts a force on its blades. That force makes the blades rotate, converting the kinetic energy of the wind into mechanical energy. In a modern wind turbine, this mechanical energy is further converted into electrical energy by a generator.</p>
+        <p>This simple experiment demonstrates the basic working principle of wind energy conversion.</p>
+      </section>
+
+      <section id="materials">
+        <h3><span>03</span>Materials required</h3>
+        <ul class="chips">
+          <li>Square sheet of paper or thin cardboard (15 cm × 15 cm)</li>
+          <li>Scissors</li>
+          <li>Scale</li>
+          <li>Pencil</li>
+          <li>Push pin</li>
+          <li>Straw or wooden stick</li>
+          <li>Eraser or cork</li>
+          <li>Adhesive tape</li>
+          <li>Electric fan (optional)</li>
+        </ul>
+      </section>
+
+      <section id="procedure">
+        <h3><span>04</span>Procedure</h3>
+        <ol class="steps">
+          <li>Take a square sheet of paper or cardboard.</li>
+          <li>Draw diagonal lines from each corner towards the centre.</li>
+          <li>Cut along each diagonal up to about three-fourths of the distance to the centre.</li>
+          <li>Fold every alternate corner towards the centre.</li>
+          <li>Fix the folded corners with a push pin.</li>
+          <li>Attach the windmill to a straw or wooden stick so that it rotates freely.</li>
+        </ol>
+        <div class="photos">
+          <figure><img src="images/photo1.jpg" alt="A paper pinwheel with folded patterned blades pinned to a wooden stick" loading="lazy"><figcaption>Fig. 1: Assembled paper windmill</figcaption></figure>
+          <figure><img src="images/photo2.jpg" alt="A brightly coloured pinwheel against a blue sky" loading="lazy"><figcaption>Fig. 2: Folded blades catching the wind</figcaption></figure>
+        </div>
+        <h4>Observation setup</h4>
+        <p>The windmill is tested under four airflow conditions while the blade movement is observed carefully: no wind, slow natural wind, medium fan speed and high fan speed.</p>
+      </section>
+
+      <section id="observation">
+        <h3><span>05</span>Observation table</h3>
+        <p class="note">The row matching the simulator's current wind speed is highlighted.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Test</th><th>Wind source</th><th>Wind speed</th><th>Blade rotation</th><th>Observation</th></tr></thead>
+            <tbody id="obs">
+              <tr><td>1</td><td>No wind</td><td>Zero</td><td>No rotation</td><td>Windmill remains stationary.</td></tr>
+              <tr><td>2</td><td>Natural breeze</td><td>Low</td><td>Slow</td><td>Blades rotate slowly.</td></tr>
+              <tr><td>3</td><td>Fan</td><td>Medium</td><td>Moderate</td><td>Continuous smooth rotation is observed.</td></tr>
+              <tr><td>4</td><td>Fan</td><td>High</td><td>Fast</td><td>Blades rotate rapidly with higher speed.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="result">
+        <h3><span>06</span>Result</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Wind speed</th><th>Blade speed</th><th>Mechanical motion produced</th></tr></thead>
+            <tbody>
+              <tr><td>Low</td><td>Slow</td><td>Small amount</td></tr>
+              <tr><td>Medium</td><td>Moderate</td><td>Moderate amount</td></tr>
+              <tr><td>High</td><td>Fast</td><td>Large amount</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="principle">
+        <h3><span>07</span>Principle</h3>
+        <p>When moving air strikes the blades of the windmill, it applies a force on them, and this force makes the blades rotate.</p>
+        <p class="label">In the paper windmill</p>
+        <div class="flow">
+          <span>Wind energy (kinetic)</span><i>→</i><span>Rotational mechanical energy</span>
+        </div>
+        <p class="label">In a modern wind turbine, the shaft drives a generator</p>
+        <div class="flow">
+          <span>Wind energy</span><i>→</i><span>Mechanical energy</span><i>→</i><span>Electrical energy</span>
+        </div>
+      </section>
+
+      <section id="working">
+        <h3><span>08</span>Working of the windmill</h3>
+        <ol class="steps">
+          <li>Wind hits the blades.</li>
+          <li>The blades begin to rotate.</li>
+          <li>Rotation turns the central shaft.</li>
+          <li>Mechanical energy is produced.</li>
+          <li>In modern turbines, the rotating shaft drives a generator to produce electricity.</li>
+        </ol>
+      </section>
+
+      <section id="observations">
+        <h3><span>09</span>Observations</h3>
+        <ul>
+          <li>The windmill rotates only when wind is present.</li>
+          <li>As wind speed increases, blade rotation also increases.</li>
+          <li>Larger airflow produces greater mechanical motion.</li>
+          <li>Smooth, balanced blades rotate more efficiently.</li>
+          <li>Wind direction also affects blade rotation.</li>
+        </ul>
+      </section>
+
+      <section id="analysis">
+        <h3><span>10</span>Analysis</h3>
+        <p>The experiment clearly shows that moving air contains energy. When the wind strikes the blades, the kinetic energy of the air is transferred to the windmill, causing it to rotate.</p>
+        <p>The faster the wind blows, the greater the force acting on the blades, so the rotational speed of the windmill increases with wind speed. This simple model demonstrates the same working principle used in large wind turbines.</p>
+        <p>The experiment also shows that blade shape and blade angle play an important role in capturing wind energy efficiently.</p>
+        <aside class="callout">
+          <p class="label">How the simulator estimates RPM</p>
+          <p>Blade tip speed ≈ 0.6 × (wind speed − 0.5 m/s), and RPM = tip speed × 60 ÷ (2π × 0.075 m). The 0.5 m/s cut-in represents friction at the push pin, and 7.5 cm is the blade radius of a 15 cm sheet.</p>
+        </aside>
+      </section>
+
+      <section id="links">
+        <h3><span>11</span>Link with traditional and modern systems</h3>
+        <p>In earlier times, windmills directly converted wind energy into useful mechanical work:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Traditional system</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td>Windmills</td><td>Grinding grain</td></tr>
+              <tr><td>Water-pumping windmills</td><td>Lifting water for irrigation</td></tr>
+              <tr><td>Sailing ships</td><td>Moving boats using wind power</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Modern wind turbines use the same basic principle on a much larger scale:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Traditional windmill</th><th>Modern wind turbine</th></tr></thead>
+            <tbody>
+              <tr><td>Wooden blades</td><td>Aerodynamic fiberglass blades</td></tr>
+              <tr><td>Mechanical work only</td><td>Mechanical and electrical energy</td></tr>
+              <tr><td>Small size</td><td>Very large structures</td></tr>
+              <tr><td>Used for grinding and pumping</td><td>Used for electricity generation</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="pros" class="cols">
+        <div>
+          <h3><span>12</span>Advantages</h3>
+          <ul>
+            <li>Renewable source of energy</li>
+            <li>Environment-friendly</li>
+            <li>Produces no air pollution</li>
+            <li>Reduces dependence on fossil fuels</li>
+            <li>Low operating cost after installation</li>
+            <li>Suitable for sustainable development</li>
+          </ul>
+        </div>
+        <div>
+          <h3><span>13</span>Limitations</h3>
+          <ul>
+            <li>Wind is not available continuously</li>
+            <li>Electricity generation depends on wind speed</li>
+            <li>High installation cost</li>
+            <li>Requires large open areas</li>
+            <li>Can produce noise during operation</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="applications">
+        <h3><span>14</span>Applications</h3>
+        <ul class="chips">
+          <li>Electricity generation</li>
+          <li>Water pumping</li>
+          <li>Agricultural irrigation</li>
+          <li>Rural electrification</li>
+          <li>Battery charging</li>
+          <li>Offshore wind farms</li>
+          <li>Small household wind generators</li>
+        </ul>
+      </section>
+
+      <section id="precautions">
+        <h3><span>15</span>Precautions</h3>
+        <ul>
+          <li>Make sure the blades are equal in size.</li>
+          <li>Fix the push pin loosely so the blades rotate freely.</li>
+          <li>Keep fingers away from fast-moving blades.</li>
+          <li>Perform the experiment in an open area or in front of a fan.</li>
+          <li>Hold the windmill firmly during testing.</li>
+        </ul>
+      </section>
+
+      <section id="conclusion">
+        <h3><span>16</span>Conclusion</h3>
+        <p>The paper windmill successfully demonstrates the conversion of wind energy into mechanical motion. As the wind speed increases, the blades rotate faster, showing that stronger winds produce more mechanical energy.</p>
+        <p>The experiment explains the basic working principle of both traditional windmills, used for grinding grain and pumping water, and modern wind turbines that generate electricity. It highlights the importance of wind as a clean, renewable and sustainable source of energy.</p>
+      </section>
+    </article>
+  </div>
+</main>
+
+<script>
+(() => {
+  const RADIUS = 0.075;   // pinwheel blade radius in metres (15 cm sheet)
+  const CUT_IN = 0.5;     // m/s needed to overcome pin friction
+  const TSR = 0.6;        // tip-speed ratio of a paper pinwheel
+
+  const slider = document.getElementById('speed');
+  const speedOut = document.getElementById('speedOut');
+  const rpmEl = document.getElementById('rpm');
+  const levelEl = document.getElementById('level');
+  const tipEl = document.getElementById('tip');
+  const statusEl = document.getElementById('status');
+  const rotor = document.getElementById('rotor');
+  const rows = document.querySelectorAll('#obs tr');
+  const presets = document.querySelectorAll('.presets button');
+  const windSvg = document.getElementById('wind');
+
+  const levels = [
+    { max: 0.5, name: 'Zero', text: 'No wind: the windmill remains stationary.' },
+    { max: 3,   name: 'Low', text: 'Natural breeze: the blades rotate slowly.' },
+    { max: 6,   name: 'Medium', text: 'Medium fan: continuous, smooth rotation.' },
+    { max: Infinity, name: 'High', text: 'High fan: the blades rotate rapidly.' },
+  ];
+
+  // Target RPM for a given wind speed: below cut-in nothing moves,
+  // above it the tip travels at roughly TSR × wind speed.
+  const targetRpm = v => v <= CUT_IN ? 0 : (TSR * (v - CUT_IN) / (2 * Math.PI * RADIUS)) * 60;
+
+  let wind = 0, rpm = 0, angle = 0, last = performance.now();
+
+  function setWind(v) {
+    wind = v;
+    slider.value = v;
+    speedOut.textContent = v.toFixed(1) + ' m/s';
+    const idx = levels.findIndex(l => v <= l.max);
+    levelEl.textContent = levels[idx].name;
+    statusEl.textContent = levels[idx].text;
+    rows.forEach((r, i) => r.classList.toggle('active', i === idx));
+    presets.forEach(b => {
+      const bi = levels.findIndex(l => +b.dataset.v <= l.max);
+      b.setAttribute('aria-pressed', bi === idx);
+    });
+  }
+
+  slider.addEventListener('input', () => setWind(+slider.value));
+  presets.forEach(b => b.addEventListener('click', () => setWind(+b.dataset.v)));
+
+  // Wind streaks
+  const NS = 'http://www.w3.org/2000/svg';
+  const streaks = Array.from({ length: 18 }, () => {
+    const l = document.createElementNS(NS, 'line');
+    l.setAttribute('stroke', 'white');
+    l.setAttribute('stroke-linecap', 'round');
+    l.setAttribute('stroke-width', '2');
+    windSvg.appendChild(l);
+    return { el: l, x: Math.random() * 480 - 40, y: Math.random() * 400, len: 20 + Math.random() * 40, k: 0.6 + Math.random() * 0.8 };
+  });
+
+  // Motion-blur ghosts: copies of the blades trailing behind the rotor
+  const GHOSTS = 6;
+  const ghostGroup = document.getElementById('ghosts');
+  const ghosts = Array.from({ length: GHOSTS }, () => {
+    const u = document.createElementNS(NS, 'use');
+    u.setAttribute('href', '#blades');
+    ghostGroup.appendChild(u);
+    return u;
+  });
+
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, 0.25);
+    last = now;
+
+    // Rotor inertia: ease toward the target speed
+    const target = targetRpm(wind);
+    rpm += (target - rpm) * (1 - Math.exp(-dt * (target > rpm ? 1.6 : 0.9)));
+    if (rpm < 0.5 && target === 0) rpm = 0;
+
+    if (!reduceMotion) {
+      angle = (angle + rpm * 6 * dt) % 360; // rpm × 360° / 60 s
+      rotor.setAttribute('transform', `rotate(${angle})`);
+      const sweep = rpm * 6 / 60; // degrees travelled per 60 fps frame
+      const blur = Math.min(Math.max((rpm - 60) / 200, 0), 1);
+      ghosts.forEach((g, i) => {
+        g.setAttribute('transform', `rotate(${angle - sweep * (i + 1) / GHOSTS})`);
+        g.setAttribute('opacity', blur * 0.45 * (1 - i / GHOSTS));
+      });
+    }
+    rpmEl.textContent = Math.round(rpm);
+    tipEl.textContent = (rpm / 60 * 2 * Math.PI * RADIUS).toFixed(1) + ' m/s';
+
+    const opacity = Math.min(wind / 8, 1) * 0.7;
+    streaks.forEach(s => {
+      s.x += wind * 40 * s.k * dt;
+      if (s.x > 440) { s.x = -s.len - Math.random() * 60; s.y = Math.random() * 400; }
+      s.el.setAttribute('x1', s.x);
+      s.el.setAttribute('x2', s.x + s.len);
+      s.el.setAttribute('y1', s.y);
+      s.el.setAttribute('y2', s.y);
+      s.el.setAttribute('stroke-opacity', opacity);
+    });
+
+    const live = document.getElementById('live');
+    if (live) { live.setAttribute('cx', cx(wind)); live.setAttribute('cy', cy(rpm)); }
+
+    requestAnimationFrame(frame);
+  }
+
+  // Recorded readings and RPM vs wind speed chart
+  const readings = [];
+  const chart = document.getElementById('chart');
+  const readingRows = document.getElementById('readingRows');
+  const W = 420, H = 260, PAD = { l: 44, r: 12, t: 12, b: 36 }, VMAX = 8, RMAX = 600;
+  const cx = v => PAD.l + v / VMAX * (W - PAD.l - PAD.r);
+  const cy = r => H - PAD.b - r / RMAX * (H - PAD.t - PAD.b);
+
+  function drawChart() {
+    let g = '';
+    for (let r = 0; r <= RMAX; r += 100) {
+      g += `<line x1="${PAD.l}" x2="${W - PAD.r}" y1="${cy(r)}" y2="${cy(r)}" stroke="var(--line)" />`;
+      g += `<text x="${PAD.l - 8}" y="${cy(r) + 4}" text-anchor="end">${r}</text>`;
+    }
+    for (let v = 0; v <= VMAX; v += 2) g += `<text x="${cx(v)}" y="${H - PAD.b + 16}" text-anchor="middle">${v}</text>`;
+    g += `<text x="${(PAD.l + W - PAD.r) / 2}" y="${H - 4}" text-anchor="middle">Wind speed (m/s)</text>`;
+    g += `<text transform="translate(12 ${(PAD.t + H - PAD.b) / 2}) rotate(-90)" text-anchor="middle">RPM</text>`;
+    const pts = [];
+    for (let v = 0; v <= VMAX + 0.01; v += 0.1) pts.push(`${cx(v).toFixed(1)},${cy(targetRpm(v)).toFixed(1)}`);
+    g += `<polyline points="${pts.join(' ')}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4" />`;
+    readings.forEach(p => { g += `<circle cx="${cx(p.v)}" cy="${cy(p.rpm)}" r="5" fill="var(--accent)" stroke="var(--surface)" stroke-width="2" />`; });
+    g += `<circle id="live" r="4" fill="none" stroke="var(--accent)" stroke-width="2" />`;
+    chart.innerHTML = g;
+  }
+
+  function renderReadings() {
+    readingRows.innerHTML = readings.length
+      ? readings.map((p, i) => `<tr><td>${i + 1}</td><td>${p.v.toFixed(1)} m/s</td><td>${p.level}</td><td>${p.rpm}</td></tr>`).join('')
+      : '<tr class="empty"><td colspan="4">No readings yet.</td></tr>';
+    drawChart();
+  }
+
+  document.getElementById('record').addEventListener('click', () => {
+    readings.push({ v: wind, rpm: Math.round(rpm), level: levelEl.textContent });
+    renderReadings();
+  });
+  document.getElementById('clear').addEventListener('click', () => { readings.length = 0; renderReadings(); });
+
+  // Highlight the report section currently in view
+  const tocLinks = document.querySelectorAll('.toc a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) tocLinks.forEach(a => a.classList.toggle('current', a.hash === '#' + e.target.id));
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  document.querySelectorAll('.doc section[id]').forEach(s => observer.observe(s));
+
+  renderReadings();
+  setWind(0);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
