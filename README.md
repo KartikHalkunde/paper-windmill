@@ -33,5 +33,3 @@ These values are a teaching model, **not measurements from a physical windmill**
 | `index.html` | Interactive simulator, chart, report, illustrations, styles, and print layout |
 | `assets/paper-windmill.svg` | Transparent windmill illustration used in this README |
 | `README.md` | Project overview and usage notes |
-
-The interface uses a soft blue palette while keeping the paper windmill's original multicolour blades. Decorative clouds move across the background; reduced-motion preferences stop that animation.
